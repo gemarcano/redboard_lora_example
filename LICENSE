@@ -1,0 +1,6 @@
+svl.py and linker.ld are (presumably) released with the AM-BSD-EULA license as
+they were shipped with the AmbiqSDK by SparkFun:
+ - https://github.com/sparkfun/AmbiqSuiteSDK
+ - https://github.com/sparkfun/Apollo3_Uploader_SVL
+
+All other files are released under the Apache 2.0 license.

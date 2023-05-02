@@ -1,0 +1,1 @@
+option('tty', type : 'string', value : '/dev/ttyUSB0', description : 'Path to the TTY device of the RedBoard')
