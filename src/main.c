@@ -65,7 +65,7 @@ int main(void)
 	// Trigger the ADC to start collecting data
 	adc_trigger(&adc);
 
-	gpio_init(&lora_power, 10, false);
+	gpio_init(&lora_power, 10, GPIO_MODE_OUTPUT, false);
 	//lora_receive_mode(&lora);
 
 	// Wait here for the ISR to grab a buffer of samples.
@@ -95,7 +95,7 @@ int main(void)
 			am_util_delay_ms(10);
 			// Only continue if we initialize
 			// FIXME what if we never initialize?
-			while(!lora_init(&lora, 915000000));
+			while(!lora_init(&lora, 915000000, 42));
 			lora_standby(&lora);
 			lora_set_spreading_factor(&lora, 7);
 			lora_set_coding_rate(&lora, 1);
@@ -107,11 +107,14 @@ int main(void)
 				"{ \"temperature\": %i, \"magnitude\": %i }",
 				(int)(temperature * magnitude),
 				magnitude);
-			lora_send_packet(&lora, buffer, strlen((char*)buffer));
-			if (lora_rx_amount(&lora))
+			int sent = lora_send_packet(&lora, buffer, strlen((char*)buffer));
+			am_util_stdio_printf("length %i %i\r\n", strlen((char*)buffer), sent);
+
+			int received = 0;
+			//while (!(received = lora_receive_packet(&lora, buffer, sizeof(buffer))));
+			if (received)
 			{
-				am_util_stdio_printf("length %i\r\n", lora_rx_amount(&lora));
-				lora_receive_packet(&lora, buffer, 32);
+				am_util_stdio_printf("length %i\r\n", received);
 				am_util_stdio_printf("Data: %s\r\n", buffer);
 			}
 			lora_destroy(&lora);
