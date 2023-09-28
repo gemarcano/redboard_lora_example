@@ -10,7 +10,6 @@
 #include <math.h>
 #include <stdio.h>
 
-#include <uart.h>
 #include <adc.h>
 #include <spi.h>
 #include <lora.h>
@@ -34,7 +33,6 @@ static void error_handler(uint32_t error)
 	}
 }
 
-static struct uart uart;
 static struct adc adc;
 static struct gpio lora_power;
 static struct lora lora;
@@ -48,9 +46,6 @@ int main(void)
 	am_bsp_low_power_init();
 	am_hal_sysctrl_fpu_enable();
 	am_hal_sysctrl_fpu_stacking_enable(true);
-
-	// Init UART, registers with SDK printf
-	uart_init(&uart, UART_INST0);
 
 	// Initialize the ADC.
 	adc_init(&adc);
@@ -100,23 +95,18 @@ int main(void)
 			lora_set_spreading_factor(&lora, 7);
 			lora_set_coding_rate(&lora, 1);
 			lora_set_bandwidth(&lora, 0x7);
+			//lora_set_transmit_level(&lora, 17, true);
 
 			unsigned char buffer[64];
 			int magnitude = 10000;
-			snprintf((char*)buffer, sizeof(buffer),
-				"{ \"temperature\": %i, \"magnitude\": %i }",
-				(int)(temperature * magnitude),
-				magnitude);
-			int sent = lora_send_packet(&lora, buffer, strlen((char*)buffer));
-			am_util_stdio_printf("length %i %i\r\n", strlen((char*)buffer), sent);
-
-			int received = 0;
-			//while (!(received = lora_receive_packet(&lora, buffer, sizeof(buffer))));
-			if (received)
+			int raw = temperature * magnitude;
+			for (int i = 0 ; i< 8; ++i)
 			{
-				am_util_stdio_printf("length %i\r\n", received);
-				am_util_stdio_printf("Data: %s\r\n", buffer);
+				buffer[i] = ((char*)&temperature)[i];
 			}
+
+			lora_send_packet(&lora, buffer, 8);//strlen((char*)buffer));
+
 			lora_destroy(&lora);
 			gpio_set(&lora_power, false);
 		}
